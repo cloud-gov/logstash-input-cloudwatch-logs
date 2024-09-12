@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.homepage        = ''
   s.require_paths = ['lib']
 
-  #s.platform = Gem::Platform::JAVA if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'  # Files
+  # Files
   s.files = Dir['lib/**/*','spec/**/*','vendor/**/*','*.gemspec','*.md','CONTRIBUTORS','Gemfile','LICENSE','NOTICE.TXT']
 
   # Tests
@@ -24,5 +24,4 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'logstash-mixin-aws', '>= 5.1.0'
   s.add_runtime_dependency 'stud', '~> 0.0.22'
 
-  #s.add_development_dependency 'logstash-devutils'
 end
