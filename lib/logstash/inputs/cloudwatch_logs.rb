@@ -119,7 +119,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         groups = find_log_groups
 
         groups.each do |group|
-          @logger.debug("calling process_group on #{group}")
+          @logger.debug("calling process_group on Jason #{group}")
           process_group(group)
         end # groups.each
       rescue Aws::CloudWatchLogs::Errors::ThrottlingException
@@ -181,6 +181,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     next_token = nil
     loop do
       if !@sincedb.member?(group)
+        @logger.debug("settingsincedb #{group}")
         @sincedb[group] = 0
       end
       params = {
@@ -190,7 +191,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
           :next_token => next_token
       }
       resp = @cloudwatch.filter_log_events(params)
-
       resp.events.each do |event|
         process_log(event, group)
       end
@@ -207,13 +207,19 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   # def process_log
   private
   def process_log(log, group)
-
+    tag_params = {
+      :log_group_name => group
+    }
+    tag = @cloudwatch.list_tags_log_group(tag_params)
+    @logger.debug("processing_log #{log}")
+    @logger.debug("processing_tag #{tag}")
     @codec.decode(log.message.to_str) do |event|
       event.set("@timestamp", parse_time(log.timestamp))
       event.set("[cloudwatch_logs][ingestion_time]", parse_time(log.ingestion_time))
       event.set("[cloudwatch_logs][log_group]", group)
       event.set("[cloudwatch_logs][log_stream]", log.log_stream_name)
       event.set("[cloudwatch_logs][event_id]", log.event_id)
+      event.set("[cloudwatch_logs][tags]", tag.tags)
       decorate(event)
 
       @queue << event
