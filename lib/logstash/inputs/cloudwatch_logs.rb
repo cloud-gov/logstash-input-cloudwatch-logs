@@ -181,7 +181,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     next_token = nil
     loop do
       if !@sincedb.member?(group)
-        @logger.debug("settingsincedb #{group}")
         @sincedb[group] = 0
       end
       params = {
