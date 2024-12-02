@@ -209,7 +209,17 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     tag_params = {
       :log_group_name => group
     }
-    tag = @cloudwatch.list_tags_log_group(tag_params)
+    response = @cloudwatch.list_tags_log_group(tag_params)
+    tags = response.tags
+
+    tags.clone.each do |key, value|
+      key_without_spaces = key.to_s.gsub(/[[:space:]]/, "")
+      if not tags.key?(key_without_spaces)
+        tags[key_without_spaces] = value
+        tags.delete(key)
+      end
+    end
+
     @logger.debug("processing_log #{log}")
     @codec.decode(log.message.to_str) do |event|
       event.set("@timestamp", parse_time(log.timestamp))
@@ -217,7 +227,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       event.set("[cloudwatch_logs][log_group]", group)
       event.set("[cloudwatch_logs][log_stream]", log.log_stream_name)
       event.set("[cloudwatch_logs][event_id]", log.event_id)
-      event.set("[cloudwatch_logs][tags]", tag.tags)
+      event.set("[cloudwatch_logs][tags]", tags)
       decorate(event)
 
       @queue << event
