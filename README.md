@@ -1,18 +1,11 @@
 # Logstash Input for CloudWatch Logs
 
-[![Gem][ico-version]][link-rubygems]
-[![Downloads][ico-downloads]][link-rubygems]
 [![Software License][ico-license]](LICENSE.md)
-[![Build Status][ico-travis]][link-travis]
 
 > Stream events from CloudWatch Logs.
 
-# Update July 2023
-Hello, this project has not received any maintenance since May of 2018. It is
-no longer a path I am using professionally, and I can not devote the time to
-maintaining it.
+## Purpose
 
-### Purpose
 Specify an individual log group or array of groups, and this plugin will scan
 all log streams in that group, and pull in any new log events.
 
@@ -23,6 +16,7 @@ and ingest all logs available in all of the matching groups.
 ## Usage
 
 ### Parameters
+
 | Parameter | Input Type | Required | Default |
 |-----------|------------|----------|---------|
 | log_group | string or Array of strings | Yes | |
@@ -38,18 +32,22 @@ and ingest all logs available in all of the matching groups.
 | codec | string | No | `plain` |
 
 #### `start_position`
+
 The `start_position` setting allows you to specify where to begin processing
 a newly encountered log group on plugin boot. Whether the group is 'new' is
 determined by whether or not the log group has a previously existing entry in
 the sincedb file.
 
 Valid options for `start_position` are:
+
 * `beginning` - Reads from the beginning of the group (default)
 * `end` - Sets the sincedb to now, and reads any new messages going forward
 * Integer - Number of seconds in the past to begin reading at
 
 #### Logstash Default config params
+
 Other standard logstash parameters are available such as:
+
 * `add_field`
 * `type`
 * `tags`
@@ -59,12 +57,13 @@ Other standard logstash parameters are available such as:
     input {
         cloudwatch_logs {
             log_group => [ "/aws/lambda/my-lambda" ]
-            access_key_id => "AKIAXXXXXX" 
+            access_key_id => "AKIAXXXXXX"
             secret_access_key => "SECRET"
         }
     }
 
 ## Development
+
 The [default logstash README](DEVELOPER.md) which contains development directions and other information has been moved to [DEVELOPER.md](DEVELOPER.md).
 
 ## Contributing
@@ -77,10 +76,4 @@ It is more important to the community that you are able to contribute.
 
 For more information about contributing, see the [CONTRIBUTING](https://github.com/elasticsearch/logstash/blob/master/CONTRIBUTING.md) file.
 
-[ico-version]: https://img.shields.io/gem/v/logstash-input-cloudwatch_logs.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/gem/dt/logstash-input-cloudwatch_logs.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/lukewaite/logstash-input-cloudwatch-logs.svg?style=flat-square
-
-[link-rubygems]: https://rubygems.org/gems/logstash-input-cloudwatch_logs
-[link-travis]: https://travis-ci.org/lukewaite/logstash-input-cloudwatch_logs
