@@ -50,7 +50,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   # seconds before now to read back from.
   config :start_position, :default => 'beginning'
 
-
   # def register
   public
   def register
@@ -60,9 +59,9 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     @sincedb = {}
 
     check_start_position_validity
-
-    Aws::ConfigService::Client.new(aws_options_hash)
     @cloudwatch = Aws::CloudWatchLogs::Client.new(aws_options_hash)
+    @tag_cache = {}
+    Aws::ConfigService::Client.new(aws_options_hash)
 
     if @sincedb_path.nil?
       if settings
@@ -203,12 +202,19 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     @priority << group
   end #def process_group
 
-  # def process_log
+  def fetch_tags(log_group_name)
+    if @tag_cache.key?(log_group_name)
+      return @tag_cache[log_group_name][:tags]
+    else
+      tags = fetch_tags_from_cloudwatch(log_group_name)
+      @tag_cache[log_group_name] = { tags: tags}
+      return tags
+    end
+  end
+
   private
-  def process_log(log, group)
-    tag_params = {
-      :log_group_name => group
-    }
+  def fetch_tags_from_cloudwatch(log_group_name)
+    tag_params = { log_group_name: log_group_name}
     response = @cloudwatch.list_tags_log_group(tag_params)
     tags = response.tags
 
@@ -219,6 +225,13 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         tags.delete(key)
       end
     end
+    tags
+  end
+
+  # def process_log
+  private
+  def process_log(log, group)
+    tags = fetch_tags(group)
 
     @logger.debug("processing_log #{log}")
     @codec.decode(log.message.to_str) do |event|
