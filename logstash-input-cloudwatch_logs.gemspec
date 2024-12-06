@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Gem::Specification.new do |s|
-  s.required_ruby_version = '> 3'
+  s.required_ruby_version = '= 3.1.4'
 
   s.name            = 'logstash-input-cloudwatch_logs'
   s.version         = '1.1.1'
