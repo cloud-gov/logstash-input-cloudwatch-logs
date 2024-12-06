@@ -98,7 +98,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     return if @start_position =~ /^(beginning|end)$/
     return if @start_position.is_a? Integer
 
-    raise LogStash::ConfigurationError, 'start_position '#{@start_position}' is invalid! Must be `beginning`, `end`, or an integer.'
+    raise LogStash::ConfigurationError, "start_position '#{@start_position}' is invalid! Must be `beginning`, `end`, or an integer."
   end
 
   def run(queue)
@@ -112,7 +112,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         groups = find_log_groups
 
         groups.each do |group|
-          @logger.debug('calling process_group on #{group}')
+          @logger.debug("calling process_group on #{group}")
           process_group(group)
         end # groups.each
       rescue Aws::CloudWatchLogs::Errors::ThrottlingException
@@ -133,7 +133,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
           log_groups = @cloudwatch.describe_log_groups(log_group_name_prefix: group, next_token: next_token)
           groups += log_groups.log_groups.map {|n| n.log_group_name}
           next_token = log_groups.next_token
-          @logger.debug('found #{log_groups.log_groups.length} log groups matching prefix #{group}')
+          @logger.debug("found #{log_groups.log_groups.length} log groups matching prefix #{group}")
           break if next_token.nil?
         end
       end
@@ -230,7 +230,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def process_log(log, group)
     tags = fetch_tags(group)
 
-    @logger.debug('processing_log #{log}')
+    @logger.debug("processing_log #{log}")
     @codec.decode(log.message.to_str) do |event|
       event.set('@timestamp', parse_time(log.timestamp))
       event.set('[cloudwatch_logs][ingestion_time]', parse_time(log.ingestion_time))
@@ -253,16 +253,16 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def _sincedb_open
     begin
       File.open(@sincedb_path) do |db|
-        @logger.debug? && @logger.debug('_sincedb_open: reading from #{@sincedb_path}')
+        @logger.debug? && @logger.debug("_sincedb_open: reading from #{@sincedb_path}")
         db.each do |line|
           group, pos = line.split(' ', 2)
-          @logger.debug? && @logger.debug('_sincedb_open: setting #{group} to #{pos.to_i}')
+          @logger.debug? && @logger.debug("_sincedb_open: setting #{group} to #{pos.to_i}")
           @sincedb[group] = pos.to_i
         end
       end
     rescue
       #No existing sincedb to load
-      @logger.debug? && @logger.debug('_sincedb_open: error: #{@sincedb_path}: #{$!}')
+      @logger.debug? && @logger.debug("_sincedb_open: error: #{@sincedb_path}: #{$!}")
     end
   end
 
@@ -272,7 +272,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     rescue Errno::EACCES
       # probably no file handles free
       # maybe it will work next time
-      @logger.debug? && @logger.debug('_sincedb_write: error: #{@sincedb_path}: #{$!}')
+      @logger.debug? && @logger.debug("_sincedb_write: error: #{@sincedb_path}: #{$!}")
     end
   end
 
