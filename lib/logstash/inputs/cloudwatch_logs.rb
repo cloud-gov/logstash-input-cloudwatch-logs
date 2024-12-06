@@ -218,7 +218,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     tag_params = { log_group_name: log_group_name}
     response = @cloudwatch.list_tags_log_group(tag_params)
     tags = response.tags
-
+    @logger.info("fetching tags for log_group #{log_group_name}")
     tags.clone.each do |key, value|
       key_without_spaces = key.to_s.gsub(/[[:space:]]/, "")
       if not tags.key?(key_without_spaces)
