@@ -201,6 +201,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def fetch_tags(log_group_name)
     return @tag_cache[log_group_name][:tags] if @tag_cache.key?(log_group_name) && !should_fetch_tags(log_group_name)
 
+    @logger.info("Fetching tags for #{log_group_name} from CloudWatch")
     tags = fetch_tags_from_cloudwatch(log_group_name)
     @tag_cache[log_group_name] = { tags: tags, last_updated: Time.now }
     tags
