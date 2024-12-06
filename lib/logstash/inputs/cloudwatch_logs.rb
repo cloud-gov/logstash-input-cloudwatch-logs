@@ -141,7 +141,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       groups = @log_group
     end
     # Move the most recent groups to the end
-    groups.sort{|a,b| priority_of(a) <=> priority_of(b) }
+    groups.sort{ |a, b| priority_of(a) <=> priority_of(b) }
   end
 
   def determine_start_position(groups, sincedb)
@@ -174,10 +174,10 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         @sincedb[group] = 0
       end
       params = {
-          :log_group_name => group,
-          :start_time => @sincedb[group],
-          :interleaved => true,
-          :next_token => next_token
+        :log_group_name => group,
+        :start_time => @sincedb[group],
+        :interleaved => true,
+        :next_token => next_token
       }
       resp = @cloudwatch.filter_log_events(params)
       resp.events.each do |event|
