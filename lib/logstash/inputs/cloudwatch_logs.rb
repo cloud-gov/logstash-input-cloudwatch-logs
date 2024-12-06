@@ -146,18 +146,16 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
   def determine_start_position(groups, sincedb)
     groups.each do |group|
-      if !sincedb.member?(group)
-        case @start_position
-          when 'beginning'
-            sincedb[group] = 0
+      next if sincedb.member?(group)
 
-          when 'end'
-            sincedb[group] = DateTime.now.strftime('%Q')
-
-          else
-            sincedb[group] = DateTime.now.strftime('%Q').to_i - (@start_position * 1000)
-        end
-      end
+      sincedb[group] = case @start_position
+                       when 'beginning'
+                         0
+                       when 'end'
+                         DateTime.now.strftime('%Q')
+                       else
+                         DateTime.now.strftime('%Q').to_i - (@start_position * 1000)
+                       end
     end
   end
 
