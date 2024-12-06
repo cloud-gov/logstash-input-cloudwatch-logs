@@ -51,7 +51,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   config :start_position, :default => 'beginning'
 
   # def register
-  public
   def register
     require "digest/md5"
     @logger.debug("Registering cloudwatch_logs input", :log_group => @log_group)
@@ -92,10 +91,8 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       @logger.info("No sincedb_path set, generating one based on the log_group setting",
                    :sincedb_path => @sincedb_path, :log_group => @log_group)
     end
-
   end #def register
 
-  public
   def check_start_position_validity
     raise LogStash::ConfigurationError, "No start_position specified!" unless @start_position
 
@@ -105,8 +102,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     raise LogStash::ConfigurationError, "start_position '#{@start_position}' is invalid! Must be `beginning`, `end`, or an integer."
   end # def check_start_position_validity
 
-  # def run
-  public
   def run(queue)
     @queue = queue
     @priority = []
@@ -127,9 +122,8 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
       Stud.stoppable_sleep(@interval) { stop? }
     end
-  end # def run
+  end
 
-  public
   def find_log_groups
     if @log_group_prefix
       @logger.debug("log_group prefix is enabled, searching for log groups")
@@ -152,12 +146,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     groups.sort{|a,b| priority_of(a) <=> priority_of(b) }
   end # def find_log_groups
 
-  private
-  def priority_of(group)
-    @priority.index(group) || -1
-  end
-
-  public
   def determine_start_position(groups, sincedb)
     groups.each do |group|
       if !sincedb.member?(group)
@@ -176,6 +164,11 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   end # def determine_start_position
 
   private
+
+  def priority_of(group)
+    @priority.index(group) || -1
+  end
+
   def process_group(group)
     next_token = nil
     loop do
@@ -202,7 +195,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     @priority << group
   end #def process_group
 
-  private
   def should_fetch_tags(log_group_name)
     # only fetch tags if
     # - there is no timestamp for when the tags were last updated
@@ -211,7 +203,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       ((Time.now - @tag_cache[log_group_name][:last_updated]) > (60 * 60))
   end
 
-  private
   def fetch_tags(log_group_name)
     if @tag_cache.key?(log_group_name) && !should_fetch_tags(log_group_name)
       return @tag_cache[log_group_name][:tags]
@@ -222,7 +213,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     end
   end
 
-  private
   def fetch_tags_from_cloudwatch(log_group_name)
     tag_params = { log_group_name: log_group_name}
     response = @cloudwatch.list_tags_log_group(tag_params)
@@ -239,7 +229,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   end
 
   # def process_log
-  private
   def process_log(log, group)
     tags = fetch_tags(group)
 
@@ -259,12 +248,10 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   end # def process_log
 
   # def parse_time
-  private
   def parse_time(data)
     LogStash::Timestamp.at(data.to_i / 1000, (data.to_i % 1000) * 1000)
   end # def parse_time
 
-  private
   def _sincedb_open
     begin
       File.open(@sincedb_path) do |db|
@@ -281,7 +268,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     end
   end # def _sincedb_open
 
-  private
   def _sincedb_write
     begin
       IO.write(@sincedb_path, serialize_sincedb, 0)
@@ -292,8 +278,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     end
   end # def _sincedb_write
 
-
-  private
   def serialize_sincedb
     @sincedb.map do |group, pos|
       [group, pos].join(" ")
