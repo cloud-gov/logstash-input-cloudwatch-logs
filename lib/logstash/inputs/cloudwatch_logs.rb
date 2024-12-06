@@ -49,7 +49,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   # seconds before now to read back from.
   config :start_position, :default => 'beginning'
 
-  # def register
   def register
     require 'digest/md5'
     @logger.debug('Registering cloudwatch_logs input', :log_group => @log_group)
@@ -82,7 +81,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         raise
       end
 
-      #pick SINCEDB_DIR if available, otherwise use HOME
+      # pick SINCEDB_DIR if available, otherwise use HOME
       sincedb_dir = ENV['SINCEDB_DIR'] || ENV['HOME']
 
       @sincedb_path = File.join(sincedb_dir, '.sincedb_' + Digest::MD5.hexdigest(@log_group.join(',')))
@@ -261,7 +260,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         end
       end
     rescue
-      #No existing sincedb to load
+      # No existing sincedb to load
       @logger.debug? && @logger.debug("_sincedb_open: error: #{@sincedb_path}: #{$!}")
     end
   end
