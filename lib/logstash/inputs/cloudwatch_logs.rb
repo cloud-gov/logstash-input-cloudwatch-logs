@@ -202,13 +202,11 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   end
 
   def fetch_tags(log_group_name)
-    if @tag_cache.key?(log_group_name) && !should_fetch_tags(log_group_name)
-      @tag_cache[log_group_name][:tags]
-    else
-      tags = fetch_tags_from_cloudwatch(log_group_name)
-      @tag_cache[log_group_name] = { tags: tags, last_updated: Time.now }
-      tags
-    end
+    return @tag_cache[log_group_name][:tags] if @tag_cache.key?(log_group_name) && !should_fetch_tags(log_group_name)
+
+    tags = fetch_tags_from_cloudwatch(log_group_name)
+    @tag_cache[log_group_name] = { tags: tags, last_updated: Time.now }
+    tags
   end
 
   def fetch_tags_from_cloudwatch(log_group_name)
@@ -218,7 +216,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
     tags.clone.each do |key, value|
       key_without_spaces = key.to_s.gsub(/[[:space:]]/, '')
-      if not tags.key?(key_without_spaces)
+      unless tags.key?(key_without_spaces)
         tags[key_without_spaces] = value
         tags.delete(key)
       end
