@@ -203,11 +203,11 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
   def fetch_tags(log_group_name)
     if @tag_cache.key?(log_group_name) && !should_fetch_tags(log_group_name)
-      return @tag_cache[log_group_name][:tags]
+      @tag_cache[log_group_name][:tags]
     else
       tags = fetch_tags_from_cloudwatch(log_group_name)
       @tag_cache[log_group_name] = { tags: tags, last_updated: Time.now }
-      return tags
+      tags
     end
   end
 
