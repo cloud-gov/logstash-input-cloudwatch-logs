@@ -130,7 +130,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       @log_group.each do |group|
         loop do
           log_groups = @cloudwatch.describe_log_groups(log_group_name_prefix: group, next_token: next_token)
-          groups += log_groups.log_groups.map {|n| n.log_group_name}
+          groups += log_groups.log_groups.map { |n| n.log_group_name }
           next_token = log_groups.next_token
           @logger.debug("found #{log_groups.log_groups.length} log groups matching prefix #{group}")
           break if next_token.nil?
@@ -141,7 +141,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       groups = @log_group
     end
     # Move the most recent groups to the end
-    groups.sort{ |a, b| priority_of(a) <=> priority_of(b) }
+    groups.sort { |a, b| priority_of(a) <=> priority_of(b) }
   end
 
   def determine_start_position(groups, sincedb)
