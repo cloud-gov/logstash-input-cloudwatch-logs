@@ -202,17 +202,17 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def fetch_tags(log_group_name)
     return @tag_cache[log_group_name][:tags] if @tag_cache.key?(log_group_name) && !should_fetch_tags(log_group_name)
 
-    @logger.info("Fetching tags for #{log_group_name} from CloudWatch")
     tags = fetch_tags_from_cloudwatch(log_group_name)
     @tag_cache[log_group_name] = { tags: tags, last_updated: Time.now }
     tags
   end
 
   def fetch_tags_from_cloudwatch(log_group_name)
-    tag_params = { log_group_name: log_group_name}
+    @logger.info("Fetching tags for log_group #{log_group_name} from CloudWatch")
+    tag_params = { log_group_name: log_group_name }
     response = @cloudwatch.list_tags_log_group(tag_params)
     tags = response.tags
-    @logger.info("fetching tags for log_group #{log_group_name}")
+
     tags.clone.each do |key, value|
       key_without_spaces = key.to_s.gsub(/[[:space:]]/, '')
       unless tags.key?(key_without_spaces)
