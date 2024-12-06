@@ -1,12 +1,12 @@
-require "logstash/inputs/base"
-require "logstash/namespace"
-require "logstash/plugin_mixins/aws_config"
-require "logstash/timestamp"
-require "time"
-require "stud/interval"
-require "aws-sdk"
-require "logstash/inputs/cloudwatch_logs/patch"
-require "fileutils"
+require 'logstash/inputs/base'
+require 'logstash/namespace'
+require 'logstash/plugin_mixins/aws_config'
+require 'logstash/timestamp'
+require 'time'
+require 'stud/interval'
+require 'aws-sdk'
+require 'logstash/inputs/cloudwatch_logs/patch'
+require 'fileutils'
 
 Aws.eager_autoload!
 
@@ -22,9 +22,9 @@ Aws.eager_autoload!
 class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   include LogStash::PluginMixins::AwsConfig::V2
 
-  config_name "cloudwatch_logs"
+  config_name 'cloudwatch_logs'
 
-  default :codec, "plain"
+  default :codec, 'plain'
 
   # Log group(s) to use as an input. If `log_group_prefix` is set
   # to `true`, then each member of the array is treated as a prefix
@@ -32,7 +32,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
   # Where to write the since database (keeps track of the date
   # the last handled log stream was updated). The default will write
-  # sincedb files to some path matching "$HOME/.sincedb*"
+  # sincedb files to some path matching '$HOME/.sincedb*'
   # Should be a path with filename not just a directory.
   config :sincedb_path, :validate => :string, :default => nil
 
@@ -51,8 +51,8 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
   # def register
   def register
-    require "digest/md5"
-    @logger.debug("Registering cloudwatch_logs input", :log_group => @log_group)
+    require 'digest/md5'
+    @logger.debug('Registering cloudwatch_logs input', :log_group => @log_group)
     settings = defined?(LogStash::SETTINGS) ? LogStash::SETTINGS : nil
     @sincedb = {}
 
@@ -63,42 +63,42 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
     if @sincedb_path.nil?
       if settings
-        datapath = File.join(settings.get_value("path.data"), "plugins", "inputs", "cloudwatch_logs")
+        datapath = File.join(settings.get_value('path.data'), 'plugins', 'inputs', 'cloudwatch_logs')
         # Ensure that the filepath exists before writing, since it's deeply nested.
         FileUtils::mkdir_p datapath
-        @sincedb_path = File.join(datapath, ".sincedb_" + Digest::MD5.hexdigest(@log_group.join(",")))
+        @sincedb_path = File.join(datapath, '.sincedb_' + Digest::MD5.hexdigest(@log_group.join(',')))
       end
     end
 
     # This section is going to be deprecated eventually, as path.data will be
     # the default, not an environment variable (SINCEDB_DIR or HOME)
     if @sincedb_path.nil? # If it is _still_ nil...
-      if ENV["SINCEDB_DIR"].nil? && ENV["HOME"].nil?
+      if ENV['SINCEDB_DIR'].nil? && ENV['HOME'].nil?
         @logger.error("No SINCEDB_DIR or HOME environment variable set, I don't know where " \
                       "to keep track of the files I'm watching. Either set " \
-                      "HOME or SINCEDB_DIR in your environment, or set sincedb_path in " \
-                      "in your Logstash config for the file input with " \
+                      'HOME or SINCEDB_DIR in your environment, or set sincedb_path in ' \
+                      'in your Logstash config for the file input with ' \
                       "path '#{@path.inspect}'")
         raise
       end
 
       #pick SINCEDB_DIR if available, otherwise use HOME
-      sincedb_dir = ENV["SINCEDB_DIR"] || ENV["HOME"]
+      sincedb_dir = ENV['SINCEDB_DIR'] || ENV['HOME']
 
-      @sincedb_path = File.join(sincedb_dir, ".sincedb_" + Digest::MD5.hexdigest(@log_group.join(",")))
+      @sincedb_path = File.join(sincedb_dir, '.sincedb_' + Digest::MD5.hexdigest(@log_group.join(',')))
 
-      @logger.info("No sincedb_path set, generating one based on the log_group setting",
+      @logger.info('No sincedb_path set, generating one based on the log_group setting',
                    :sincedb_path => @sincedb_path, :log_group => @log_group)
     end
   end #def register
 
   def check_start_position_validity
-    raise LogStash::ConfigurationError, "No start_position specified!" unless @start_position
+    raise LogStash::ConfigurationError, 'No start_position specified!' unless @start_position
 
     return if @start_position =~ /^(beginning|end)$/
     return if @start_position.is_a? Integer
 
-    raise LogStash::ConfigurationError, "start_position '#{@start_position}' is invalid! Must be `beginning`, `end`, or an integer."
+    raise LogStash::ConfigurationError, 'start_position '#{@start_position}' is invalid! Must be `beginning`, `end`, or an integer.'
   end # def check_start_position_validity
 
   def run(queue)
@@ -112,11 +112,11 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         groups = find_log_groups
 
         groups.each do |group|
-          @logger.debug("calling process_group on #{group}")
+          @logger.debug('calling process_group on #{group}')
           process_group(group)
         end # groups.each
       rescue Aws::CloudWatchLogs::Errors::ThrottlingException
-        @logger.debug("reached rate limit")
+        @logger.debug('reached rate limit')
       end
 
       Stud.stoppable_sleep(@interval) { stop? }
@@ -125,7 +125,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
   def find_log_groups
     if @log_group_prefix
-      @logger.debug("log_group prefix is enabled, searching for log groups")
+      @logger.debug('log_group prefix is enabled, searching for log groups')
       groups = []
       next_token = nil
       @log_group.each do |group|
@@ -133,12 +133,12 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
           log_groups = @cloudwatch.describe_log_groups(log_group_name_prefix: group, next_token: next_token)
           groups += log_groups.log_groups.map {|n| n.log_group_name}
           next_token = log_groups.next_token
-          @logger.debug("found #{log_groups.log_groups.length} log groups matching prefix #{group}")
+          @logger.debug('found #{log_groups.log_groups.length} log groups matching prefix #{group}')
           break if next_token.nil?
         end
       end
     else
-      @logger.debug("log_group_prefix not enabled")
+      @logger.debug('log_group_prefix not enabled')
       groups = @log_group
     end
     # Move the most recent groups to the end
@@ -218,7 +218,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     tags = response.tags
 
     tags.clone.each do |key, value|
-      key_without_spaces = key.to_s.gsub(/[[:space:]]/, "")
+      key_without_spaces = key.to_s.gsub(/[[:space:]]/, '')
       if not tags.key?(key_without_spaces)
         tags[key_without_spaces] = value
         tags.delete(key)
@@ -231,14 +231,14 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def process_log(log, group)
     tags = fetch_tags(group)
 
-    @logger.debug("processing_log #{log}")
+    @logger.debug('processing_log #{log}')
     @codec.decode(log.message.to_str) do |event|
-      event.set("@timestamp", parse_time(log.timestamp))
-      event.set("[cloudwatch_logs][ingestion_time]", parse_time(log.ingestion_time))
-      event.set("[cloudwatch_logs][log_group]", group)
-      event.set("[cloudwatch_logs][log_stream]", log.log_stream_name)
-      event.set("[cloudwatch_logs][event_id]", log.event_id)
-      event.set("[cloudwatch_logs][tags]", tags)
+      event.set('@timestamp', parse_time(log.timestamp))
+      event.set('[cloudwatch_logs][ingestion_time]', parse_time(log.ingestion_time))
+      event.set('[cloudwatch_logs][log_group]', group)
+      event.set('[cloudwatch_logs][log_stream]', log.log_stream_name)
+      event.set('[cloudwatch_logs][event_id]', log.event_id)
+      event.set('[cloudwatch_logs][tags]', tags)
       decorate(event)
 
       @queue << event
@@ -254,16 +254,16 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def _sincedb_open
     begin
       File.open(@sincedb_path) do |db|
-        @logger.debug? && @logger.debug("_sincedb_open: reading from #{@sincedb_path}")
+        @logger.debug? && @logger.debug('_sincedb_open: reading from #{@sincedb_path}')
         db.each do |line|
-          group, pos = line.split(" ", 2)
-          @logger.debug? && @logger.debug("_sincedb_open: setting #{group} to #{pos.to_i}")
+          group, pos = line.split(' ', 2)
+          @logger.debug? && @logger.debug('_sincedb_open: setting #{group} to #{pos.to_i}')
           @sincedb[group] = pos.to_i
         end
       end
     rescue
       #No existing sincedb to load
-      @logger.debug? && @logger.debug("_sincedb_open: error: #{@sincedb_path}: #{$!}")
+      @logger.debug? && @logger.debug('_sincedb_open: error: #{@sincedb_path}: #{$!}')
     end
   end # def _sincedb_open
 
@@ -273,13 +273,13 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     rescue Errno::EACCES
       # probably no file handles free
       # maybe it will work next time
-      @logger.debug? && @logger.debug("_sincedb_write: error: #{@sincedb_path}: #{$!}")
+      @logger.debug? && @logger.debug('_sincedb_write: error: #{@sincedb_path}: #{$!}')
     end
   end # def _sincedb_write
 
   def serialize_sincedb
     @sincedb.map do |group, pos|
-      [group, pos].join(" ")
-    end.join("\n") + "\n"
+      [group, pos].join(' ')
+    end.join('\n') + '\n'
   end
 end # class LogStash::Inputs::CloudWatch_Logs
