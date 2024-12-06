@@ -57,10 +57,11 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     @logger.debug("Registering cloudwatch_logs input", :log_group => @log_group)
     settings = defined?(LogStash::SETTINGS) ? LogStash::SETTINGS : nil
     @sincedb = {}
-
+    @logger.info("version 1.1.1")
     check_start_position_validity
     @cloudwatch = Aws::CloudWatchLogs::Client.new(aws_options_hash)
     @tag_cache = {}
+    @logger.info("starting Cache")
     Aws::ConfigService::Client.new(aws_options_hash)
 
     if @sincedb_path.nil?
@@ -140,7 +141,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
           log_groups = @cloudwatch.describe_log_groups(log_group_name_prefix: group, next_token: next_token)
           groups += log_groups.log_groups.map {|n| n.log_group_name}
           next_token = log_groups.next_token
-          @logger.debug("found #{log_groups.log_groups.length} log groups matching prefix #{group}")
+          @logger.info("found #{log_groups.log_groups.length} log groups matching prefix #{group}")
           break if next_token.nil?
         end
       end
@@ -217,7 +218,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     tag_params = { log_group_name: log_group_name}
     response = @cloudwatch.list_tags_log_group(tag_params)
     tags = response.tags
-
+    @logger.info("fetching tags for log_group #{log_group_name}")
     tags.clone.each do |key, value|
       key_without_spaces = key.to_s.gsub(/[[:space:]]/, "")
       if not tags.key?(key_without_spaces)
