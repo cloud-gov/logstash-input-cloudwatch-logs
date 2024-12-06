@@ -156,7 +156,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
           else
             sincedb[group] = DateTime.now.strftime('%Q').to_i - (@start_position * 1000)
-        end # case @start_position
+        end
       end
     end
   end
@@ -170,9 +170,8 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def process_group(group)
     next_token = nil
     loop do
-      if !@sincedb.member?(group)
-        @sincedb[group] = 0
-      end
+      @sincedb[group] = 0 unless @sincedb.member?(group)
+
       params = {
         :log_group_name => group,
         :start_time => @sincedb[group],
