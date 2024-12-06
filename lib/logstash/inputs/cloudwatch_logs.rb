@@ -202,12 +202,22 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     @priority << group
   end #def process_group
 
+  private
+  def should_fetch_tags(log_group_name)
+    # only fetch tags if
+    # - there is no timestamp for when the tags were last updated
+    # - OR the tags were last updated more than an hour ago (60 seconds * 60 minutes)
+    @tag_cache[log_group_name][:last_updated].nil? ||
+      ((Time.now - @tag_cache[log_group_name][:last_updated]) > (60 * 60))
+  end
+
+  private
   def fetch_tags(log_group_name)
-    if @tag_cache.key?(log_group_name)
+    if @tag_cache.key?(log_group_name) && !should_fetch_tags(log_group_name)
       return @tag_cache[log_group_name][:tags]
     else
       tags = fetch_tags_from_cloudwatch(log_group_name)
-      @tag_cache[log_group_name] = { tags: tags}
+      @tag_cache[log_group_name] = { tags: tags, last_updated: Time.now }
       return tags
     end
   end
