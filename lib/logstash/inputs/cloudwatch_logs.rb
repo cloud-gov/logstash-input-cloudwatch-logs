@@ -90,7 +90,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       @logger.info('No sincedb_path set, generating one based on the log_group setting',
                    :sincedb_path => @sincedb_path, :log_group => @log_group)
     end
-  end #def register
+  end
 
   def check_start_position_validity
     raise LogStash::ConfigurationError, 'No start_position specified!' unless @start_position
@@ -99,7 +99,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     return if @start_position.is_a? Integer
 
     raise LogStash::ConfigurationError, 'start_position '#{@start_position}' is invalid! Must be `beginning`, `end`, or an integer.'
-  end # def check_start_position_validity
+  end
 
   def run(queue)
     @queue = queue
@@ -143,7 +143,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     end
     # Move the most recent groups to the end
     groups.sort{|a,b| priority_of(a) <=> priority_of(b) }
-  end # def find_log_groups
+  end
 
   def determine_start_position(groups, sincedb)
     groups.each do |group|
@@ -160,7 +160,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
         end # case @start_position
       end
     end
-  end # def determine_start_position
+  end
 
   private
 
@@ -192,7 +192,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     end
     @priority.delete(group)
     @priority << group
-  end #def process_group
+  end
 
   def should_fetch_tags(log_group_name)
     # only fetch tags if
@@ -227,7 +227,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     tags
   end
 
-  # def process_log
   def process_log(log, group)
     tags = fetch_tags(group)
 
@@ -244,12 +243,12 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       @queue << event
       @sincedb[group] = log.timestamp + 1
     end
-  end # def process_log
+  end
 
   # def parse_time
   def parse_time(data)
     LogStash::Timestamp.at(data.to_i / 1000, (data.to_i % 1000) * 1000)
-  end # def parse_time
+  end
 
   def _sincedb_open
     begin
@@ -265,7 +264,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       #No existing sincedb to load
       @logger.debug? && @logger.debug('_sincedb_open: error: #{@sincedb_path}: #{$!}')
     end
-  end # def _sincedb_open
+  end
 
   def _sincedb_write
     begin
@@ -275,11 +274,11 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       # maybe it will work next time
       @logger.debug? && @logger.debug('_sincedb_write: error: #{@sincedb_path}: #{$!}')
     end
-  end # def _sincedb_write
+  end
 
   def serialize_sincedb
     @sincedb.map do |group, pos|
       [group, pos].join(' ')
     end.join('\n') + '\n'
   end
-end # class LogStash::Inputs::CloudWatch_Logs
+end
