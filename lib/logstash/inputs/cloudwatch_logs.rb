@@ -9,8 +9,6 @@ require 'logstash/inputs/cloudwatch_logs/patch'
 require 'fileutils'
 require 'rubygems'
 
-Aws.eager_autoload!
-
 # Stream events from CloudWatch Logs streams.
 #
 # Specify an individual log group, and this plugin will scan
@@ -53,10 +51,9 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def register
     require 'digest/md5'
     @logger.debug('Registering cloudwatch_logs input', :log_group => @log_group)
-    spec = Gem::Specification.load('logstash-input-cloudwatch_logs.gemspec')
     settings = defined?(LogStash::SETTINGS) ? LogStash::SETTINGS : nil
     @sincedb = {}
-    @logger.info("version #{spec.version}")
+    @logger.info("version #{Gem.loaded_specs['logstash-input-cloudwatch_logs'].version}")
     check_start_position_validity
     @cloudwatch = Aws::CloudWatchLogs::Client.new(aws_options_hash)
     @tag_cache = {}
