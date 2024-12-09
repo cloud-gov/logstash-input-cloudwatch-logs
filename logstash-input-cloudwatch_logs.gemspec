@@ -37,5 +37,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'logstash-integration-aws', '>= 7.1.0'
   s.add_runtime_dependency 'stud', '~> 0.0.22'
 
-  s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'rubocop', '>= 1.69.1', '< 2'
 end
