@@ -7,6 +7,7 @@ require 'stud/interval'
 require 'aws-sdk'
 require 'logstash/inputs/cloudwatch_logs/patch'
 require 'fileutils'
+require 'rubygems'
 
 Aws.eager_autoload!
 
@@ -52,13 +53,14 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
   def register
     require 'digest/md5'
     @logger.debug('Registering cloudwatch_logs input', :log_group => @log_group)
+    spec = Gem::Specification.load('logstash-input-cloudwatch_logs.gemspec')
     settings = defined?(LogStash::SETTINGS) ? LogStash::SETTINGS : nil
     @sincedb = {}
-    @logger.info("version 1.1.1")
+    @logger.info("version #{spec.version}")
     check_start_position_validity
     @cloudwatch = Aws::CloudWatchLogs::Client.new(aws_options_hash)
     @tag_cache = {}
-    @logger.info("starting Cache")
+    @logger.info('starting cache')
     Aws::ConfigService::Client.new(aws_options_hash)
 
     if @sincedb_path.nil?
