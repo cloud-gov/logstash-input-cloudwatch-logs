@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '= 3.1.4'
 
   s.name            = 'logstash-input-cloudwatch_logs'
-  s.version         = '1.1.1'
+  s.version         = '1.1.2'
   s.licenses        = ['Apache-2.0']
   s.summary         = 'Stream events from CloudWatch Logs.'
   s.description     = 'This gem is a logstash plugin required to be installed on top of the Logstash core pipeline'\
