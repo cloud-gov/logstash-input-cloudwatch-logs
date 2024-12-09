@@ -17,7 +17,7 @@ Need help? Try #logstash on freenode IRC or the https://discuss.elastic.co/c/log
 
 ## Developing
 
-### 1. Plugin Developement and Testing
+### 1. Plugin Development and Testing
 
 #### Code
 
@@ -86,6 +86,25 @@ bin/plugin install /your/local/plugin/logstash-filter-awesome.gem
 ```
 
 - Start Logstash and proceed to test the plugin
+
+### Prepare package for offline installation (e.g. BOSH)
+
+Make sure you have Logstash available locally and set up:
+
+```shell
+git clone https://github.com/elastic/logstash
+cd logstash # cd to the logstash directory
+bundle install
+rake bootstrap
+```
+
+Then run the steps to build an offline pack of the gem:
+
+```shell
+jruby -S gem build logstash-input-cloudwatch_logs.gemspec
+logstash-plugin install logstash-input-cloudwatch_logs-<version>.gem
+logstash-plugin prepare-offline-pack --output logstash-input-cloudwatch_logs-<version>.zip logstash-input-cloudwatch_logs
+```
 
 ## Contributing
 
