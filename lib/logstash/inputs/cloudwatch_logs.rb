@@ -165,8 +165,23 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     @priority.index(group) || -1
   end
 
+  def map_group_to_log_type(group)
+    case group
+    when %r{/aws/rds/.*}
+      'rds'
+    when %r{/aws/OpenSearchService/.*}i
+      'opensearch'
+    when %r{/aws/ElasticCache/.*}i
+      'elasticache'
+    else
+      'unknown log type'
+    end
+  end
+
   def process_group(group)
     next_token = nil
+    log_type = map_group_to_log_type(group)
+
     loop do
       @sincedb[group] = 0 unless @sincedb.member?(group)
 
@@ -178,7 +193,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       }
       resp = @cloudwatch.filter_log_events(params)
       resp.events.each do |event|
-        process_log(event, group)
+        process_log(event, group, log_type)
       end
 
       _sincedb_write
@@ -222,7 +237,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
     tags
   end
 
-  def process_log(log, group)
+  def process_log(log, group, log_type)
     tags = fetch_tags(group)
 
     @logger.debug("processing_log #{log}")
@@ -233,7 +248,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       event.set('[cloudwatch_logs][log_stream]', log.log_stream_name)
       event.set('[cloudwatch_logs][event_id]', log.event_id)
       event.set('[cloudwatch_logs][tags]', tags)
-      event.set('[cloudwatch_logs][log_group_prefix]', @log_group_prefix)
+      event.set('[cloudwatch_logs][log_type]', log_type)
       decorate(event)
 
       @queue << event
