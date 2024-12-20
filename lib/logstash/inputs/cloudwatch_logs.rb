@@ -173,8 +173,6 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       'opensearch'
     when %r{/aws/ElasticCache/.*}i
       'elasticache'
-    else
-      'unknown log type'
     end
   end
 
@@ -248,7 +246,7 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
       event.set('[cloudwatch_logs][log_stream]', log.log_stream_name)
       event.set('[cloudwatch_logs][event_id]', log.event_id)
       event.set('[cloudwatch_logs][tags]', tags)
-      event.set('[cloudwatch_logs][log_type]', log_type)
+      event.set('[cloudwatch_logs][log_type]', log_type) unless log_type.nil?
       decorate(event)
 
       @queue << event
