@@ -277,7 +277,9 @@ class LogStash::Inputs::CloudWatch_Logs < LogStash::Inputs::Base
 
   def _sincedb_write
     begin
-      IO.write(@sincedb_path, serialize_sincedb, 0)
+      File.open(@sincedb_path, "w") do |file|
+        file.write(serialize_sincedb)
+      end
     rescue Errno::EACCES
       # probably no file handles free
       # maybe it will work next time
