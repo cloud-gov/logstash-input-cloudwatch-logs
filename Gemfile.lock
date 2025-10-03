@@ -199,6 +199,7 @@ GEM
 PLATFORMS
   universal-java-17
   universal-java-21
+  universal-java-25
 
 DEPENDENCIES
   logstash-input-cloudwatch_logs!
